@@ -27,6 +27,11 @@
 
         <activity android:name=".Bluetooth"
             android:exported="true">
+
+        </activity>
+
+        <activity android:name=".BluetoothDevicesAvailable"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

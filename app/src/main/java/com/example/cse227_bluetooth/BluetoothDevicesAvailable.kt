@@ -1,6 +1,7 @@
 package com.example.cse227_bluetooth
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -63,51 +64,63 @@ class BluetoothDevicesAvailable : AppCompatActivity() {
     }
 
     private fun checkPermission(): Boolean {
-        val permissionNeeded = BLUETOOTH_PERMISSIONS.filter {
+        val permissionsNeeded = BLUETOOTH_PERMISSIONS.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
-        if (permissionNeeded.isNotEmpty()) {
-            if (permissionNeeded.any { ActivityCompat.shouldShowRequestPermissionRationale(this, it) }) {
-                Toast.makeText(this, "Bluetooth permissions are required to scan for devices", Toast.LENGTH_SHORT).show()
-            }
-            ActivityCompat.requestPermissions(this, permissionNeeded.toTypedArray(), REQUEST_CODE_BLUETOOTH)
-            return false
+
+        return if (permissionsNeeded.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toTypedArray(), REQUEST_CODE_BLUETOOTH)
+            false
+        } else {
+            true
         }
-        return true
     }
 
+    @SuppressLint("MissingPermission")
     private fun discoverBluetoothDevices() {
-        if (bluetoothAdapter.isDiscovering) {
-            bluetoothAdapter.cancelDiscovery()
+        if (!checkPermission()) return
+
+        try {
+            if (bluetoothAdapter.isDiscovering) {
+                bluetoothAdapter.cancelDiscovery()
+            }
+
+            deviceList.clear()
+            arrayAdapter.notifyDataSetChanged()
+
+            bluetoothAdapter.startDiscovery()
+
+            val filterFound = IntentFilter(BluetoothDevice.ACTION_FOUND)
+            val filterFinished = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+
+            registerReceiver(receiver, filterFound)
+            registerReceiver(receiver, filterFinished)
+
+            Toast.makeText(this, "Scanning for devices...", Toast.LENGTH_SHORT).show()
+
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            Toast.makeText(this, "Bluetooth permission denied", Toast.LENGTH_SHORT).show()
         }
-
-        deviceList.clear()
-        arrayAdapter.notifyDataSetChanged()
-
-        bluetoothAdapter.startDiscovery()
-
-        val filterFound = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        val filterFinished = IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-
-        registerReceiver(receiver, filterFound)
-        registerReceiver(receiver, filterFinished)
-
-        Toast.makeText(this, "Scanning for devices...", Toast.LENGTH_SHORT).show()
     }
 
     private val receiver = object : BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 BluetoothDevice.ACTION_FOUND -> {
                     val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    val deviceName = device?.name ?: "Unknown Device"
-                    val deviceHardwareAddress = device?.address // MAC address
-                    val deviceInfo = "$deviceName\n$deviceHardwareAddress"
-                    if (!deviceList.contains(deviceInfo)) {
-                        deviceList.add(deviceInfo)
-                        arrayAdapter.notifyDataSetChanged()
+                    if (device != null) {
+                        val deviceName = device.name ?: "Unknown Device"
+                        val deviceHardwareAddress = device.address
+                        val deviceInfo = "$deviceName\n$deviceHardwareAddress"
+                        if (!deviceList.contains(deviceInfo)) {
+                            deviceList.add(deviceInfo)
+                            arrayAdapter.notifyDataSetChanged()
+                        }
                     }
                 }
+
                 BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
                     Toast.makeText(this@BluetoothDevicesAvailable, "Discovery finished", Toast.LENGTH_SHORT).show()
                 }
@@ -115,6 +128,7 @@ class BluetoothDevicesAvailable : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("MissingPermission")
     override fun onDestroy() {
         super.onDestroy()
         try {
@@ -122,7 +136,14 @@ class BluetoothDevicesAvailable : AppCompatActivity() {
         } catch (e: IllegalArgumentException) {
             // Receiver already unregistered
         }
-        bluetoothAdapter.cancelDiscovery()
+
+        try {
+            if (checkPermission()) {
+                bluetoothAdapter.cancelDiscovery()
+            }
+        } catch (e: SecurityException) {
+            // Permission denied
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -131,7 +152,7 @@ class BluetoothDevicesAvailable : AppCompatActivity() {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 discoverBluetoothDevices()
             } else {
-                Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Bluetooth permissions denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
