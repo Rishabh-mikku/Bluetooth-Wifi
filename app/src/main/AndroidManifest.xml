@@ -38,6 +38,11 @@
 
         <activity android:name=".WifiActivity"
             android:exported="true">
+
+        </activity>
+
+        <activity android:name=".WifiSpeedTester"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
