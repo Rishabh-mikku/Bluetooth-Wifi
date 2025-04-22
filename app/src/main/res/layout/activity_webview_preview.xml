@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- WebView to load webPage -->
+    <WebView
+        android:id="@+id/webViewMain"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <!-- Button to save the Pdf file when closed -->
+    <Button
+        android:layout_alignParentBottom="true"
+        android:textColor="#ffffff"
+        android:background="#4C024E"
+        android:text="Convert WebPage to PDF"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:id="@+id/savePdfButton"/>
+</RelativeLayout>

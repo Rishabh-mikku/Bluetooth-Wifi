@@ -33,6 +33,11 @@
 
         <activity android:name=".WebViewExample2"
             android:exported="true">
+
+        </activity>
+
+        <activity android:name=".WebViewPdfSave"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
