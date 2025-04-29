@@ -38,6 +38,16 @@
 
         <activity android:name=".WebViewPdfSave"
             android:exported="true">
+
+        </activity>
+
+        <activity android:name=".WebViewRefresh"
+            android:exported="true">
+
+        </activity>
+
+        <activity android:name=".WebViewFullScreen"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

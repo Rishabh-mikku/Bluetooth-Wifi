@@ -59,7 +59,7 @@ class WebViewPdfSave : AppCompatActivity() {
     var printBtnPressed = false
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private fun printTheWebPage(webView: WebView) {
-        // set printBtnPressed true
+        // set printBtnPressed  true
         printBtnPressed = true
         // Creating PrintManager instance
         val printManager = this
